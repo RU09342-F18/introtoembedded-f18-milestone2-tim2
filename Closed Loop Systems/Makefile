@@ -13,20 +13,25 @@ LFLAGS = -L $(SUPPORT_FILE_DIRECTORY) -T $(DEVICE).ld
 
 all: program
 
+pwm.o: pwm.c pwm.h
+	$(CC) $(CFLAGS) -c pwm.c -o $@
+
 temp.o: temp.c temp.h thermistor_10k.h
 	$(CC) $(CFLAGS) -c temp.c -o $@
 
 uart.o: uart.c uart.h
 	$(CC) $(CFLAGS) -c uart.c -o $@
 
-main.o: main.c uart.h temp.h
+main.o: main.c uart.h temp.h pwm.h
 	$(CC) $(CFLAGS) -c main.c -o $@
 
-${DEVICE}.elf: main.o uart.o temp.o
-	$(CC) $(CFLAGS) $(LFLAGS) main.o uart.o temp.o -o $(DEVICE).elf
+${DEVICE}.elf: main.o uart.o temp.o pwm.o
+	$(CC) $(CFLAGS) $(LFLAGS) main.o uart.o temp.o pwm.o -o $(DEVICE).elf
 
 ${DEVICE}.hex: ${DEVICE}.elf
 	$(OBJCOPY) -O ihex $(DEVICE).elf $(DEVICE).hex
+
+build: ${DEVICE}.hex
 
 program: ${DEVICE}.hex
 	#$(FLASH) -n $(DEVICE) -w $(DEVICE).hex -v -z '[VCC]'
