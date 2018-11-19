@@ -13,14 +13,17 @@ LFLAGS = -L $(SUPPORT_FILE_DIRECTORY) -T $(DEVICE).ld
 
 all: program
 
+temp.o: temp.c temp.h thermistor_10k.h
+	$(CC) $(CFLAGS) -c temp.c -o $@
+
 uart.o: uart.c uart.h
 	$(CC) $(CFLAGS) -c uart.c -o $@
 
-main.o: main.c uart.h thermistor_10k.h
+main.o: main.c uart.h temp.h
 	$(CC) $(CFLAGS) -c main.c -o $@
 
-${DEVICE}.elf: main.o uart.o
-	$(CC) $(CFLAGS) $(LFLAGS) main.o uart.o -o $(DEVICE).elf
+${DEVICE}.elf: main.o uart.o temp.o
+	$(CC) $(CFLAGS) $(LFLAGS) main.o uart.o temp.o -o $(DEVICE).elf
 
 ${DEVICE}.hex: ${DEVICE}.elf
 	$(OBJCOPY) -O ihex $(DEVICE).elf $(DEVICE).hex
