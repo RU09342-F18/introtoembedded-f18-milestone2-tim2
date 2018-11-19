@@ -1,6 +1,17 @@
 #include <msp430.h>
 #include "uart.h"
 
+void serial_init() {
+    P4SEL |= BIT4+BIT5;                       // P3.3,4 = USCI_A0 TXD/RXD
+    UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
+    UCA1CTL1 |= UCSSEL_2;                     // SMCLK
+    UCA1BR0 = 9;                              // 1MHz 115200 (see User's Guide)
+    UCA1BR1 = 0;                              // 1MHz 115200
+    UCA1MCTL |= UCBRS_1 + UCBRF_0;            // Modulation UCBRSx=1, UCBRFx=0
+    UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+    UCA1IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
+}
+
 void write_serial(char* buffer) {
     for (int i = 0; i < 8; i++) {
         while (!(UCA1IFG && UCTXIFG));

@@ -4,6 +4,8 @@
 
 #define RX_BUFFER_SIZE 8
 
+void serial_init();
+
 void write_serial(char* buffer);
 void write_dec(int number);
 

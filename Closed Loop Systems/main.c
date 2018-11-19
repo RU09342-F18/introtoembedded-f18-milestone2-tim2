@@ -71,17 +71,6 @@ void setup_adc() {
     P1DIR |= 0x01;                            // P1.0 output
 }
 
-void setup_uart() {
-    P4SEL |= BIT4+BIT5;                       // P3.3,4 = USCI_A0 TXD/RXD
-    UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
-    UCA1CTL1 |= UCSSEL_2;                     // SMCLK
-    UCA1BR0 = 9;                              // 1MHz 115200 (see User's Guide)
-    UCA1BR1 = 0;                              // 1MHz 115200
-    UCA1MCTL |= UCBRS_1 + UCBRF_0;            // Modulation UCBRSx=1, UCBRFx=0
-    UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-    UCA1IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
-}
-
 void setup_pwm() {
     // sets up timer 0 for pwm
 
@@ -115,8 +104,9 @@ int main(void) {
 
     setup_watchdog();
     setup_adc();
-    setup_uart();
     setup_pwm();
+
+    init_serial();
 
     __bis_SR_register(GIE);     // LPM0, ADC12_ISR will force exit
 
@@ -219,9 +209,6 @@ int main(void) {
         }
     }
 }
-
-int in_buffer = 0;
-int in_digit = 4;
 
 /*
  * ADC Interrupt
