@@ -52,3 +52,25 @@ Along with your performance marked during testing, you will need to submit your 
 In your app note and your repository, I expect you to have a section dedicated to the hardware used in the system and how it is connected. You will need to specify what sensors you are using, why use those sensors, and how you condition the signal before taking it into your microcontroller. As for the software side of things, your big focus in both App Note and code comments should be on the method in how to get information from your system, how to place the set point, and most importantly how your control algorithm works. This can not be stressed enough.
 
 You will need to include a block diagram to show your system components and define the signals going between them and their relationship to each other. This really needs to stay "high level" and should look at the system components in terms of transfer functions. In your App Note, you need to include small portions of code exemplifying your algorithm and approach. As with Milestone 1, you need to really give us engineering analysis and decision making as to why you went with your algorithm and talk about what lead you to pick your specific implementation. Do we expect you to be Control Theory experts? No, but we do expect you to be able to take steps towards analyzing what is not desirable in your system and how to remedy it.
+=======
+# Hardware PWM
+
+Increases the brightness of a led on the launchpad when a button is pressed. The other led lights up while the button is being pressed.
+This uses timers to directly control the pins to generate PWM.
+
+The MSP430G2553 and MSP430F5529 are officially supported, and the source code is in the g2553 and f5529 folders, respectivly.
+
+# Usage
+
+By default, this uses P1.0 for th button led, P1.6 for the brightness led, and P1.3 for the button on the g2553.
+The f5529 uses P4.7 for the button led, P1.2 for the brightness led, and P1.1 for the button.
+Note that the f5529 launchpa does not have a led on p1.2; a jumper can be run to the P1.0 led.
+
+# Compiling and uploading
+
+Ensure that you have msp430gcc installed. In particular, `msp430-elf-gcc` and `msp430-elf-objcopy` are used to compile the program and convert the elf to a hex for uploading.
+
+To flash the msp430, you will need the official TI MSP Flasher installed. It will need to be avaiable as `mspflash`. This allows a wrapper script to set the `LD_LIBRARY_PATH` correctly for MSP Flasher.
+
+Simply type `make` in the correct directory for your processor, and the program will be compiled and uploaded to an attached Launchpad.
+
