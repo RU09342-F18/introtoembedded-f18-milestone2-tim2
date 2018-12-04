@@ -37,12 +37,9 @@ void write_dec(int number) {
         buffer[i] = to_convert % 10 + '0';
         to_convert /= 10;
         i--;
-        for (int i = 0; i < 10000; i++) {
-            asm("");
-        }
     }
 
-    buffer[7] = '\n';
+    buffer[7] = ' ';
     write_serial(buffer);
 }
 

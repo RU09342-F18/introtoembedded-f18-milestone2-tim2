@@ -9,7 +9,7 @@ void setup_watchdog() {
     WDTCTL = WDTPW + WDTHOLD;
 }
 
-int temperature_report = 0;
+int report = 0;
 
 int main(void) {
 
@@ -19,18 +19,55 @@ int main(void) {
     serial_init();
     pwm_init();
 
+    pwm_p_set(1000);
+    pwm_i_set(1);
+
     __bis_SR_register(GIE);
 
     while (1) {
 
-        if (temperature_report) {
+        if (report) {
             double temp = temperature_read();
+            int output = pwm_output();
+            write_serial("report: ");
             write_dec((int)temp);
+            write_serial("        ");
+            write_dec(output);
+            write_serial("       \n");
         }
 
         if (serial_available() > 0) {
             char cmd = serial_peek();
             switch (cmd) {
+                // Set temperature for auto pwm
+                case 'A':
+
+                    // Need 3 characters to set temp
+                    // Axx
+
+                    // Remover letter
+                    serial_read();
+
+                    int temp = 0;
+                    for(int i = 0; i < 2; i++) {
+                        char in = serial_read();
+                        switch(i) {
+                            case 0:
+                                temp = (in - '0') * 10;
+                                break;
+                            case 1:
+                                temp += (in - '0') * 1;
+                                break;
+                        }
+                    }
+
+                    pwm_auto_set(temp);
+                    write_serial("message:");
+                    write_serial("Set temp");
+                    write_dec(temp);
+                    write_serial("       \n");
+
+                    break;
 
                 // Set pwm directly
                 case 'S':
@@ -68,14 +105,15 @@ int main(void) {
                     write_serial("message:");
                     write_serial("Set pwm ");
                     write_dec(pwm);
+                    write_serial("       \n");
 
                     break;
 
-                // Enable/disable temp reporting
-                case 'T':
+                // Enable/disable reporting
+                case 'R':
 
                     // Need at least 2 characters
-                    // Tx
+                    // Rx
                     if (serial_available() < 2) break;
 
                     // Remove letter from buffer
@@ -83,20 +121,94 @@ int main(void) {
 
                     char in = serial_read();
                     if (in == '0') {
-                        temperature_report = 0;
+                        report = 0;
                         write_serial("message:");
                         write_serial("Disabled");
-                        write_serial(" tempera");
-                        write_serial("ture rep");
-                        write_serial("orting \n");
+                        write_serial(" report\n");
                     } else if (in == '1') {
-                        temperature_report = 1;
+                        report = 1;
                         write_serial("message:");
                         write_serial("Enabled ");
-                        write_serial("temperat");
-                        write_serial("ure repo");
-                        write_serial("rting  \n");
+                        write_serial("report  \n");
                     }
+
+                    break;
+
+                case 'P':
+
+                    // Need at least 5 characters to set pwm
+                    // Pxxxx
+                    if (serial_available() < 5) break;
+
+                    // Remove the letter from the buffer, since we know it is an S
+                    // and need to get to the numbers
+                    serial_read();
+
+                    // Convert the ascii numbers to a real int
+                    int p = 0;
+                    for (int i = 0; i < 4; i++) {
+                        char in = serial_read();
+                        switch(i) {
+                            case 0:
+                                p = (in - '0') * 1000;
+                                break;
+                            case 1:
+                                p += (in - '0') * 100;
+                                break;
+                            case 2:
+                                p += (in - '0') * 10;
+                                break;
+                            case 3:
+                                p += (in - '0') * 1;
+                                break;
+                        }
+                    }
+
+                    pwm_p_set(p);
+
+                    write_serial("message:");
+                    write_serial("Set p   ");
+                    write_dec(p);
+                    write_serial("       \n");
+
+                    break;
+
+                case 'I':
+
+                    // Need at least 5 characters to set pwm
+                    // Pxxxx
+                    if (serial_available() < 5) break;
+
+                    // Remove the letter from the buffer, since we know it is an S
+                    // and need to get to the numbers
+                    serial_read();
+
+                    // Convert the ascii numbers to a real int
+                    int ki = 0;
+                    for (int i = 0; i < 4; i++) {
+                        char in = serial_read();
+                        switch(i) {
+                            case 0:
+                                ki = (in - '0') * 1000;
+                                break;
+                            case 1:
+                                ki += (in - '0') * 100;
+                                break;
+                            case 2:
+                                ki += (in - '0') * 10;
+                                break;
+                            case 3:
+                                ki += (in - '0') * 1;
+                                break;
+                        }
+                    }
+
+                    pwm_i_set(ki);
+
+                    write_serial("message:");
+                    write_serial("Set i   ");
+                    write_dec(ki);
+                    write_serial("       \n");
 
                     break;
 
@@ -110,6 +222,7 @@ int main(void) {
 
                     break;
             }
+
         }
     }
 }
